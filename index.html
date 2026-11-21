@@ -118,6 +118,28 @@ h2{font:500 15px/1.4 var(--ui);margin:0}
 .new-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:176px;border:1px dashed var(--line-2);border-radius:6px;color:var(--text-2);text-decoration:none;font-weight:500;transition:background-color .15s var(--ease),color .15s var(--ease)}
 .new-tile:hover{background:var(--surface);color:var(--text)}
 .empty{padding:48px 0;color:var(--text-2)}
+button.new-tile{background:transparent;width:100%;font:inherit;font-weight:500}
+.tile-tag{right:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sec + .sec{margin-top:40px}
+.sec > h2{margin-bottom:16px}
+.folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px}
+.folder{display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface);text-decoration:none;transition:border-color .15s var(--ease)}
+.folder:hover{border-color:var(--line-2)}
+.folder .ic{color:var(--text-3)}
+.folder-name{font-weight:500;min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.folder-n{color:var(--text-3);font-size:13px}
+.with-ic{display:flex;align-items:center;gap:12px}
+.with-ic .ic{color:var(--text-3)}
+.with-ic span{min-width:0;overflow-wrap:anywhere}
+.ed-row{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:12px}
+.ed-folder{position:relative;display:flex;align-items:center}
+.ed-folder .ic{position:absolute;left:14px;color:var(--text-3);pointer-events:none}
+.ed-folder select{width:100%;height:44px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);padding:0 12px 0 40px;outline:none;cursor:pointer}
+.ed-folder select:focus{border-color:var(--ink)}
+.dialog form{display:contents}
+.pick-list{display:flex;flex-direction:column;gap:12px;max-height:50vh;overflow:auto;padding:2px}
+.pick-list .check input{flex:none}
+@media (max-width:640px){.ed-row{grid-template-columns:1fr}}
 
 /* Set page */
 .crumb{display:inline-flex;align-items:center;gap:8px;color:var(--text-2);text-decoration:none;font-size:14px;margin-bottom:16px}
@@ -380,7 +402,8 @@ const ICONS={
   import:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
   swap:'<path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>',
   undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
-  rotate:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>'
+  rotate:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  folder:'<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>'
 };
 const ic=(n,s=16)=>`<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
 document.querySelector('.ic-wrap').outerHTML=ic('search');
@@ -435,15 +458,22 @@ const EXAMPLES=[
   ])
 ];
 
+const EX_FOLDERS=[{id:'f-info',name:'Informatique',created:Date.parse('2026-11-02T09:00:00')}];
+EXAMPLES[0].folder=EXAMPLES[1].folder='f-info';
+
 /* ---------- Stockage (navigateur) ---------- */
 const LS='recto-v1';
-let sets=[];
+let sets=[],folders=[];
 function load(){
   let v=null;try{v=JSON.parse(localStorage.getItem(LS))}catch(e){}
-  sets=(v&&Array.isArray(v.sets))?v.sets:clone(EXAMPLES);
+  if(v&&Array.isArray(v.sets)){sets=v.sets;folders=Array.isArray(v.folders)?v.folders:[]}
+  else{sets=clone(EXAMPLES);folders=clone(EX_FOLDERS)}
 }
-function save(){try{localStorage.setItem(LS,JSON.stringify({sets}))}catch(e){}}
+function save(){try{localStorage.setItem(LS,JSON.stringify({sets,folders}))}catch(e){}}
 const getSet=id=>sets.find(s=>s.id===id);
+const getFolder=id=>id?folders.find(f=>f.id===id):null;
+const inFolder=f=>sets.filter(s=>s.folder===f.id);
+const byCreated=(a,b)=>(b.created||0)-(a.created||0);
 const getCard=(set,id)=>set.cards.find(c=>c.id===id);
 function mark(set,c,s){c.s=s;set.studied=Date.now();save()}
 function counts(set){const r=[0,0,0];set.cards.forEach(c=>r[c.s||0]++);return r}
@@ -468,7 +498,9 @@ let pv={id:null,i:0,flip:false};
 function parse(){
   const h=decodeURIComponent(location.hash.slice(1));
   if(h==='new')return{v:'edit',id:null};
-  const m=h.match(/^(set|edit|cartes|apprendre|ecrire|test|associer)-(.+)$/);
+  let m=h.match(/^new-(.+)$/);
+  if(m)return{v:'edit',id:null,folder:m[1]};
+  m=h.match(/^(set|edit|dossier|cartes|apprendre|ecrire|test|associer)-(.+)$/);
   if(m)return{v:m[1],id:m[2]};
   return{v:'home'};
 }
@@ -477,7 +509,8 @@ function render(anim){
   clearTimeout(autoT);actH=keyH=inputH=null;
   const r=parse();
   if(r.v==='home'){vHome();}
-  else if(r.v==='edit'){vEdit(r.id?getSet(r.id):null);}
+  else if(r.v==='edit'){vEdit(r.id?getSet(r.id):null,getFolder(r.folder)?r.folder:'');}
+  else if(r.v==='dossier'){const f=getFolder(r.id);if(f)vFolder(f);else vHome();}
   else{
     const set=getSet(r.id);
     if(!set){vHome();return}
@@ -505,6 +538,7 @@ $('#q').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();i
 const modal=$('#modal');
 function openModal(html,onAct){modal.innerHTML=`<div class="dialog" role="dialog" aria-modal="true">${html}</div>`;modal.hidden=false;
   modal.onclick=e=>{if(e.target===modal)return closeModal();const b=e.target.closest('[data-m]');if(b)onAct(b.dataset.m,b)};
+  modal.onsubmit=e=>{e.preventDefault();onAct('submit')};
   const f=$('[data-autofocus]',modal);if(f)f.focus()}
 function closeModal(){modal.hidden=true;modal.innerHTML=''}
 let toastT;
@@ -528,27 +562,79 @@ function mbar(set){const[a,b,c]=counts(set),n=set.cards.length||1;return `<div c
 
 /* ---------- Bibliothèque ---------- */
 function vHome(){
-  let list=sets.slice().sort((a,b)=>(b.created||0)-(a.created||0));
+  let list=sets.slice().sort(byCreated);
   if(query)list=list.filter(s=>(s.title+' '+s.desc+' '+s.cards.map(c=>c.t+' '+c.d).join(' ')).toLowerCase().includes(query));
+  const fl=folders.filter(f=>!query||f.name.toLowerCase().includes(query)).sort((a,b)=>a.name.localeCompare(b.name,'fr'));
   const total=sets.reduce((n,s)=>n+s.cards.length,0);
   const last=sets.filter(s=>s.studied&&s.cards.some(c=>c.s<2)).sort((a,b)=>b.studied-a.studied)[0];
   let resume='';
   if(last&&!query){const left=last.cards.filter(c=>c.s<2).length;resume=`<a class="resume" href="#apprendre-${last.id}">${ic('apprendre')}<span>Reprendre <b>${esc(last.title)}</b> <span class="muted">· ${plural(left,'carte à revoir','cartes à revoir')}</span></span>${ic('next')}</a>`}
   app.innerHTML=`
     <div class="page-head"><div><h1>${query?'Résultats':'Mes listes'}</h1>
-      <p class="sub num">${query?plural(list.length,'liste trouvée','listes trouvées'):`${plural(sets.length,'liste','listes')} · ${plural(total,'carte','cartes')}`}</p></div></div>
+      <p class="sub num">${query?plural(list.length,'liste trouvée','listes trouvées'):`${plural(sets.length,'liste','listes')} · ${plural(total,'carte','cartes')}`}</p></div>
+      <button class="btn" data-a="newfolder">${ic('folder')}Nouveau dossier</button></div>
     ${resume}
-    ${list.length?`<div class="grid">${list.map(tile).join('')}${query?'':`<a class="new-tile" href="#new">${ic('plus',18)}Nouvelle liste</a>`}</div>`
-      :`<p class="empty">${query?'Aucune liste ne contient ce mot.':'Aucune liste pour l’instant.'} <a href="#new">Créer une liste</a></p>`}`;
+    ${fl.length?`<section class="sec"><h2>Dossiers</h2><div class="folders">${fl.map(f=>`<a class="folder" href="#dossier-${f.id}">${ic('folder',18)}<span class="folder-name">${esc(f.name)}</span><span class="folder-n num">${plural(inFolder(f).length,'liste','listes')}</span></a>`).join('')}</div></section>`:''}
+    <section class="sec">${fl.length?'<h2>Toutes les listes</h2>':''}
+    ${list.length?`<div class="grid">${list.map(s=>tile(s,true)).join('')}${query?'':`<a class="new-tile" href="#new">${ic('plus',18)}Nouvelle liste</a>`}</div>`
+      :`<p class="empty">${query?'Aucune liste ne contient ce mot.':'Aucune liste pour l’instant.'} <a href="#new">Créer une liste</a></p>`}</section>`;
+  actH=a=>{if(a==='newfolder')folderNameModal(null)};
 }
-function tile(s){
-  const[a,b,c]=counts(s);
+function tile(s,showFolder){
+  const[a,b,c]=counts(s);const f=showFolder&&getFolder(s.folder);
   return `<a class="tile" href="#set-${s.id}">
-    <span class="tile-tag">${s.example?'Exemple':ago(s.studied)}</span>
+    <span class="tile-tag">${f?esc(f.name)+' · ':''}${s.example?'Exemple':ago(s.studied)}</span>
     <h2 class="tile-title">${esc(s.title)}</h2>
     ${s.desc?`<p class="tile-desc">${esc(s.desc)}</p>`:''}
     <div class="tile-foot"><div class="tile-meta"><span>${plural(s.cards.length,'carte','cartes')}</span><span>${c} maîtrisée${c>1?'s':''}</span></div>${mbar(s)}</div>
   </a>`;
+}
+
+/* ---------- Dossiers ---------- */
+function vFolder(f){
+  const list=inFolder(f).sort(byCreated),others=sets.filter(s=>s.folder!==f.id);
+  const nc=list.reduce((n,s)=>n+s.cards.length,0);
+  app.innerHTML=`<a class="crumb" href="#">${ic('back')}Bibliothèque</a>
+    <div class="set-head"><div><h1 class="with-ic">${ic('folder',24)}<span>${esc(f.name)}</span></h1>
+      <p class="sub num">${plural(list.length,'liste','listes')} · ${plural(nc,'carte','cartes')}</p></div>
+      <div class="set-actions"><button class="btn btn-quiet" data-a="rename">${ic('edit')}Renommer</button><button class="btn btn-quiet" data-a="fdel">${ic('trash')}Supprimer</button></div></div>
+    <div class="grid" style="margin-top:32px">${list.map(s=>tile(s,false)).join('')}
+      <a class="new-tile" href="#new-${f.id}">${ic('plus',18)}Nouvelle liste ici</a>
+      ${others.length?`<button class="new-tile" data-a="addsets">${ic('folder',18)}Ajouter des listes existantes</button>`:''}</div>`;
+  actH=a=>{
+    if(a==='rename')folderNameModal(f);
+    if(a==='fdel')openModal(`<h2>Supprimer le dossier « ${esc(f.name)} »</h2><p>${list.length?`${plural(list.length,'La liste qu’il contient est gardée','Les '+list.length+' listes qu’il contient sont gardées')} et reste dans la bibliothèque.`:'Le dossier est vide.'}</p>
+      <div class="dialog-foot"><button class="btn btn-quiet" data-m="close" data-autofocus>Annuler</button><button class="btn btn-danger" data-m="ok">Supprimer le dossier</button></div>`,
+      m=>{closeModal();if(m!=='ok')return;sets.forEach(s=>{if(s.folder===f.id)s.folder=null});folders=folders.filter(x=>x.id!==f.id);save();go('');toast('Dossier supprimé')});
+    if(a==='addsets')openModal(`<form><h2>Ajouter des listes à « ${esc(f.name)} »</h2>
+      <div class="pick-list">${others.sort(byCreated).map(s=>{const o=getFolder(s.folder);return `<label class="check"><input type="checkbox" value="${s.id}"><span>${esc(s.title)}${o?` <span class="muted">· dans ${esc(o.name)}</span>`:''}</span></label>`}).join('')}</div>
+      <div class="dialog-foot"><button type="button" class="btn btn-quiet" data-m="close">Annuler</button><button class="btn btn-primary" type="submit">Ajouter</button></div></form>`,
+      m=>{if(m==='close')return closeModal();if(m!=='submit')return;const ids=$$('.pick-list input:checked',modal).map(i=>i.value);closeModal();if(!ids.length)return;
+        sets.forEach(s=>{if(ids.includes(s.id))s.folder=f.id});save();render();toast(plural(ids.length,'liste ajoutée','listes ajoutées'))});
+  };
+}
+function folderNameModal(f,done){
+  openModal(`<form><h2>${f?'Renommer le dossier':'Nouveau dossier'}</h2>
+    <input class="field" id="fname" maxlength="60" placeholder="Par exemple Partiels de janvier" value="${esc(f?f.name:'')}" data-autofocus aria-label="Nom du dossier" autocomplete="off">
+    <p class="err" id="ferr" hidden>Donnez un nom au dossier.</p>
+    <div class="dialog-foot"><button type="button" class="btn btn-quiet" data-m="close">Annuler</button><button class="btn btn-primary" type="submit">${f?'Renommer':'Créer le dossier'}</button></div></form>`,
+  m=>{if(m==='close')return closeModal();if(m!=='submit')return;
+    const n=$('#fname').value.trim();if(!n){$('#ferr').hidden=false;return}
+    closeModal();
+    if(f){f.name=n;save();render();toast('Dossier renommé')}
+    else{const nf={id:rid(),name:n,created:Date.now()};folders.push(nf);save();if(done)done(nf);else go('dossier-'+nf.id);toast('Dossier créé')}});
+}
+function moveModal(set){
+  const cur=set.folder||'';
+  openModal(`<form><h2>Ranger « ${esc(set.title)} »</h2>
+    <div class="pick-list"><label class="check"><input type="radio" name="mv" value="" ${cur?'':'checked'}>Aucun dossier</label>
+      ${folders.slice().sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(f=>`<label class="check"><input type="radio" name="mv" value="${f.id}" ${cur===f.id?'checked':''}>${esc(f.name)}</label>`).join('')}</div>
+    <button type="button" class="linkbtn" data-m="newf" style="align-self:flex-start">Créer un nouveau dossier</button>
+    <div class="dialog-foot"><button type="button" class="btn btn-quiet" data-m="close">Annuler</button><button class="btn btn-primary" type="submit">Ranger</button></div></form>`,
+  m=>{if(m==='close')return closeModal();
+    if(m==='newf')return folderNameModal(null,nf=>{set.folder=nf.id;save();render()});
+    if(m!=='submit')return;const v=($('input[name=mv]:checked',modal)||{}).value||'';closeModal();
+    set.folder=v||null;save();render();const f=getFolder(v);toast(f?`Rangée dans ${f.name}`:'Retirée du dossier')});
 }
 
 /* ---------- Page d'une liste ---------- */
@@ -558,12 +644,14 @@ function vSet(set){
   pv.i=Math.min(pv.i,set.cards.length-1);
   const c=set.cards[pv.i];const[a,b,m]=counts(set);const n=set.cards.length;
   const st=['Pas encore vue','En cours','Maîtrisée'];
+  const fo=getFolder(set.folder);
   app.innerHTML=`
-    <a class="crumb" href="#">${ic('back')}Bibliothèque</a>
+    <a class="crumb" href="${fo?'#dossier-'+fo.id:'#'}">${ic('back')}${fo?esc(fo.name):'Bibliothèque'}</a>
     <div class="set-head"><div><h1>${esc(set.title)}</h1>${set.desc?`<p class="sub">${esc(set.desc)}</p>`:''}
       <div class="meta">${plural(n,'carte','cartes')} · ${set.example?'Exemple':ago(set.studied)}</div></div>
       <div class="set-actions">
         <a class="btn btn-quiet" href="#edit-${set.id}">${ic('edit')}Modifier</a>
+        <button class="btn btn-quiet" data-a="move">${ic('folder')}${fo?'Déplacer':'Ranger'}</button>
         <button class="btn btn-quiet" data-a="export">${ic('share')}Exporter</button>
         <button class="btn btn-quiet" data-a="del">${ic('trash')}Supprimer</button>
       </div></div>
@@ -588,6 +676,7 @@ function vSet(set){
     else if(a==='pvprev')move(-1);
     else if(a==='pvnext')move(1);
     else if(a==='export')exportModal(set);
+    else if(a==='move')moveModal(set);
     else if(a==='del')deleteModal(set);
     else if(a==='reset'){set.cards.forEach(c=>c.s=0);save();vSet(set);toast('Progression remise à zéro')}
   };
@@ -604,7 +693,7 @@ function exportModal(set){
 function deleteModal(set){
   openModal(`<h2>Supprimer « ${esc(set.title)} »</h2><p>Les ${set.cards.length} cartes et votre progression seront effacées de ce navigateur.</p>
     <div class="dialog-foot"><button class="btn btn-quiet" data-m="close" data-autofocus>Annuler</button><button class="btn btn-danger" data-m="ok">Supprimer</button></div>`,
-  (m)=>{closeModal();if(m!=='ok')return;sets=sets.filter(s=>s.id!==set.id);save();go('');toast('Liste supprimée')});
+  (m)=>{closeModal();if(m!=='ok')return;sets=sets.filter(s=>s.id!==set.id);save();go(getFolder(set.folder)?'dossier-'+set.folder:'');toast('Liste supprimée')});
 }
 
 /* ---------- Séances ---------- */
@@ -860,17 +949,19 @@ function beginMatch(set){
 
 /* ---------- Éditeur ---------- */
 let D=null;
-function vEdit(set){
-  if(!D||D.src!==(set?set.id:'new'))D={src:set?set.id:'new',title:set?set.title:'',desc:set?set.desc:'',cards:set?set.cards.map(c=>({id:c.id,t:c.t,d:c.d})):[{id:rid(),t:'',d:''},{id:rid(),t:'',d:''},{id:rid(),t:'',d:''}],imp:false,impTxt:'',sepT:'\t',sepC:'\n',err:''};
+function vEdit(set,newFolder){
+  if(!D||D.src!==(set?set.id:'new'))D={src:set?set.id:'new',folder:set?(getFolder(set.folder)?set.folder:''):(newFolder||''),title:set?set.title:'',desc:set?set.desc:'',cards:set?set.cards.map(c=>({id:c.id,t:c.t,d:c.d})):[{id:rid(),t:'',d:''},{id:rid(),t:'',d:''},{id:rid(),t:'',d:''}],imp:false,impTxt:'',sepT:'\t',sepC:'\n',err:''};
   const rows=D.cards.map((c,i)=>`<div class="row" data-i="${i}"><span class="row-n">${i+1}</span>
     <div><textarea class="t" rows="1" data-f="t" data-i="${i}" aria-label="Terme ${i+1}">${esc(c.t)}</textarea><span class="row-lab">Terme</span></div>
     <div><textarea rows="1" data-f="d" data-i="${i}" aria-label="Définition ${i+1}">${esc(c.d)}</textarea><span class="row-lab">Définition</span></div>
     <button class="iconbtn" data-a="rm" data-i="${i}" aria-label="Supprimer la carte ${i+1}" ${D.cards.length<=1?'disabled':''}>${ic('trash')}</button></div>`).join('');
   const parsed=parseImport();
-  app.innerHTML=`<a class="crumb" href="${set?'#set-'+set.id:'#'}">${ic('back')}${set?'Retour à la liste':'Bibliothèque'}</a>
+  const backTo=set?'#set-'+set.id:(newFolder?'#dossier-'+newFolder:'#');
+  app.innerHTML=`<a class="crumb" href="${backTo}">${ic('back')}${set?'Retour à la liste':(newFolder?esc(getFolder(newFolder).name):'Bibliothèque')}</a>
     <div class="page-head"><h1>${set?'Modifier la liste':'Nouvelle liste'}</h1></div>
     <div class="ed-meta"><input class="field ed-title" id="et" placeholder="Titre, par exemple Anatomie : les os du bras" value="${esc(D.title)}" aria-label="Titre">
-      <input class="field" id="ed" placeholder="Description (facultatif)" value="${esc(D.desc)}" aria-label="Description"></div>
+      <div class="ed-row"><input class="field" id="ed" placeholder="Description (facultatif)" value="${esc(D.desc)}" aria-label="Description">
+      <label class="ed-folder">${ic('folder')}<select id="ef" aria-label="Dossier"><option value="">Aucun dossier</option>${folders.slice().sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(f=>`<option value="${f.id}" ${D.folder===f.id?'selected':''}>${esc(f.name)}</option>`).join('')}</select></label></div></div>
     <div class="ed-bar"><h2>${plural(D.cards.length,'carte','cartes')}</h2><button class="btn" data-a="imp" aria-expanded="${D.imp}">${ic('import')}Importer du texte</button></div>
     ${D.imp?`<div class="import"><p class="muted" style="margin:0">Collez vos cartes depuis un tableur, un document ou une autre application de fiches.</p>
       <textarea id="imp" placeholder="Mot 1&#9;Définition 1&#10;Mot 2&#9;Définition 2">${esc(D.impTxt)}</textarea>
@@ -879,10 +970,10 @@ function vEdit(set){
       <div class="imp-foot"><span class="muted num" id="impn">${parsed.length?plural(parsed.length,'carte reconnue','cartes reconnues'):'Aucune carte reconnue'}</span><button class="btn btn-primary" data-a="doimp" id="impbtn" ${parsed.length?'':'disabled'}>Ajouter ces cartes</button></div></div>`:''}
     <div class="rows">${rows}</div>
     <button class="add-row" data-a="add">${ic('plus')}Ajouter une carte</button>
-    <div class="ed-foot"><p class="err" id="eerr" ${D.err?'':'hidden'}>${esc(D.err)}</p><a class="btn btn-quiet btn-lg" href="${set?'#set-'+set.id:'#'}" data-a="cancel">Annuler</a><button class="btn btn-primary btn-lg" data-a="save">${set?'Enregistrer':'Créer la liste'}</button></div>`;
+    <div class="ed-foot"><p class="err" id="eerr" ${D.err?'':'hidden'}>${esc(D.err)}</p><a class="btn btn-quiet btn-lg" href="${backTo}" data-a="cancel">Annuler</a><button class="btn btn-primary btn-lg" data-a="save">${set?'Enregistrer':'Créer la liste'}</button></div>`;
   $$('.row textarea',app).forEach(autoGrow);
   inputH=e=>{const t=e.target;
-    if(t.id==='et')D.title=t.value;else if(t.id==='ed')D.desc=t.value;
+    if(t.id==='et')D.title=t.value;else if(t.id==='ed')D.desc=t.value;else if(t.id==='ef')D.folder=t.value;
     else if(t.dataset.f){D.cards[+t.dataset.i][t.dataset.f]=t.value;autoGrow(t)}
     else if(t.id==='imp'){D.impTxt=t.value;const p=parseImport();$('#impn').textContent=p.length?plural(p.length,'carte reconnue','cartes reconnues'):'Aucune carte reconnue';$('#impbtn').disabled=!p.length}};
   actH=(a,el)=>{
@@ -915,11 +1006,11 @@ function saveDraft(set){
   if(kept.length<2)return fail('Une liste a besoin d’au moins deux cartes.');
   if(set){
     const old={};set.cards.forEach(c=>old[c.id]=c);
-    set.title=title;set.desc=D.desc.trim();set.example=false;
+    set.title=title;set.desc=D.desc.trim();set.example=false;set.folder=D.folder||null;
     set.cards=kept.map(c=>({...c,s:old[c.id]&&old[c.id].t===c.t&&old[c.id].d===c.d?old[c.id].s:0}));
     save();D=null;go('set-'+set.id);toast('Liste enregistrée');
   }else{
-    const s={id:rid(),title,desc:D.desc.trim(),example:false,created:Date.now(),studied:0,best:{},cards:kept.map(c=>({...c,s:0}))};
+    const s={id:rid(),title,desc:D.desc.trim(),folder:D.folder||null,example:false,created:Date.now(),studied:0,best:{},cards:kept.map(c=>({...c,s:0}))};
     sets.push(s);save();D=null;go('set-'+s.id);toast('Liste créée');
   }
 }
