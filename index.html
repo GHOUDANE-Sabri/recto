@@ -12,7 +12,7 @@
 /* Layout : bibliothèque de fiches bristol sur un bureau gris neutre, une colonne de 1040 px, la carte est le seul objet en matière */
 :root{
   --bg:#f4f4f2; --surface:#ffffff; --surface-2:#ececea; --line:rgba(28,28,30,.09); --line-2:rgba(28,28,30,.16);
-  --text:#1c1c1e; --text-2:#5b5b60; --text-3:#8b8b91;
+  --text:#1c1c1e; --text-2:#5b5b60; --text-3:#6a6a70;
   --ink:#2a4a9e; --ink-hover:#22408c; --ink-soft:rgba(42,74,158,.09); --ink-fg:#ffffff;
   --btn-bg:#2a4a9e; --btn-fg:#ffffff; --btn-hover:#22408c;
   --paper:#fdfcf7; --paper-ink:#23242b; --paper-2:#6b6c74; --rule:rgba(64,112,196,.17); --margin:#cf4b3f;
@@ -26,9 +26,9 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#141415; --surface:#1c1c1e; --surface-2:#252528; --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.15);
-  --text:#ececee; --text-2:#a4a4a9; --text-3:#76767c;
+  --text:#ececee; --text-2:#a4a4a9; --text-3:#8f8f95;
   --ink:#9db2ee; --ink-hover:#b3c4f3; --ink-soft:rgba(157,178,238,.12); --ink-fg:#141415;
-  --btn-bg:#ececee; --btn-fg:#141415; --btn-hover:#ffffff;
+  --btn-bg:#9db2ee; --btn-fg:#10121a; --btn-hover:#b3c4f3;
   --paper:#e8e6de; --paper-ink:#202127; --paper-2:#5f6068; --rule:rgba(64,112,196,.20); --margin:#c4473b;
   --ok:#6fbf8e; --ok-soft:rgba(111,191,142,.12); --bad:#e48a72; --bad-soft:rgba(228,138,114,.12);
   --shadow:0 1px 2px rgba(0,0,0,.4),0 20px 44px -18px rgba(0,0,0,.7);
@@ -37,9 +37,9 @@
 }}
 :root[data-theme="dark"]{
   --bg:#141415; --surface:#1c1c1e; --surface-2:#252528; --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.15);
-  --text:#ececee; --text-2:#a4a4a9; --text-3:#76767c;
+  --text:#ececee; --text-2:#a4a4a9; --text-3:#8f8f95;
   --ink:#9db2ee; --ink-hover:#b3c4f3; --ink-soft:rgba(157,178,238,.12); --ink-fg:#141415;
-  --btn-bg:#ececee; --btn-fg:#141415; --btn-hover:#ffffff;
+  --btn-bg:#9db2ee; --btn-fg:#10121a; --btn-hover:#b3c4f3;
   --paper:#e8e6de; --paper-ink:#202127; --paper-2:#5f6068; --rule:rgba(64,112,196,.20); --margin:#c4473b;
   --ok:#6fbf8e; --ok-soft:rgba(111,191,142,.12); --bad:#e48a72; --bad-soft:rgba(228,138,114,.12);
   --shadow:0 1px 2px rgba(0,0,0,.4),0 20px 44px -18px rgba(0,0,0,.7);
@@ -54,6 +54,7 @@ button{cursor:pointer}
 a{color:inherit}
 [hidden]{display:none!important}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:8px}
+.btn:focus-visible,.iconbtn:focus-visible,.tile:focus-visible,.mode:focus-visible,.folder:focus-visible,.opt:focus-visible{outline-offset:3px}
 .ic{flex:none;display:block}
 .muted{color:var(--text-3)}
 .num{font-variant-numeric:tabular-nums}
@@ -67,23 +68,23 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .brand svg{color:var(--text-2)}
 .search{flex:1;max-width:360px;margin-left:16px;position:relative}
 .search .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-3)}
-.search input{width:100%;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--surface);padding:0 12px 0 36px;outline:none;transition:border-color .15s var(--ease)}
+.search input{width:100%;height:40px;border-radius:8px;border:1px solid var(--line);background:var(--surface);padding:0 12px 0 36px;outline:none;transition:border-color .15s var(--ease)}
 .search input:focus{border-color:var(--line-2)}
 .search input::placeholder{color:var(--text-3)}
 .top-sp{flex:1}
 
 /* Buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);font-weight:500;font-size:14px;text-decoration:none;white-space:nowrap;transition:background-color .15s var(--ease),border-color .15s var(--ease),color .15s var(--ease),transform .1s var(--ease)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 14px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);font-weight:500;font-size:14px;text-decoration:none;white-space:nowrap;transition:background-color .15s var(--ease),border-color .15s var(--ease),color .15s var(--ease),transform .1s var(--ease)}
 .btn:hover{background:var(--surface-2)}
 .btn:active{transform:scale(.98)}
 .btn:disabled{opacity:.45;cursor:default;transform:none}
-.btn-primary{background:var(--btn-bg);color:var(--btn-fg);border-color:transparent}
+.btn-primary{background:var(--btn-bg);color:var(--btn-fg);border-color:transparent;font-weight:600}
 .btn-primary:hover{background:var(--btn-hover)}
 .btn-lg{height:44px;padding:0 20px;font-size:15px}
 .btn-quiet{border-color:transparent;background:transparent;color:var(--text-2)}
 .btn-quiet:hover{background:var(--surface-2);color:var(--text)}
 .btn-danger{color:var(--bad)}
-.iconbtn{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:0;background:transparent;color:var(--text-2);text-decoration:none;transition:background-color .15s var(--ease),color .15s var(--ease)}
+.iconbtn{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:0;background:transparent;color:var(--text-2);text-decoration:none;transition:background-color .15s var(--ease),color .15s var(--ease)}
 .iconbtn:hover{background:var(--surface-2);color:var(--text)}
 .iconbtn:disabled{opacity:.35;cursor:default;background:transparent}
 .linkbtn{border:0;background:none;padding:0;color:var(--text-2);font-size:14px;text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:3px}
@@ -95,10 +96,11 @@ main{max-width:1088px;margin:0 auto;padding-left:max(24px,env(safe-area-inset-le
 h1{font:500 32px/1.15 var(--card);letter-spacing:-.01em;margin:0;text-wrap:balance}
 h2{font:500 15px/1.4 var(--ui);margin:0}
 .sub{color:var(--text-2);margin:8px 0 0}
-.resume{display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-decoration:none;margin-bottom:32px;transition:border-color .15s var(--ease)}
-.resume:hover{border-color:var(--line-2)}
+.resume{display:flex;align-items:center;gap:12px;padding:14px 18px;border:1px solid transparent;border-radius:12px;background:var(--ink-soft);text-decoration:none;margin-bottom:32px;transition:border-color .15s var(--ease)}
+.resume:hover{border-color:var(--ink)}
 .resume b{font-weight:500}
-.resume .ic{color:var(--text-3);margin-left:auto}
+.resume .ic{color:var(--ink)}
+.resume .ic:last-child{margin-left:auto}
 
 /* Library grid of bristol tiles */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:24px}
@@ -149,9 +151,12 @@ button.new-tile{background:transparent;width:100%;font:inherit;font-weight:500}
 .set-actions{display:flex;gap:4px;flex-wrap:wrap}
 .meta{color:var(--text-3);font-size:13px;margin-top:8px;font-variant-numeric:tabular-nums}
 .modes{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:32px 0}
-.mode{display:flex;align-items:center;gap:10px;height:52px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);text-decoration:none;font-weight:500;transition:border-color .15s var(--ease),background-color .15s var(--ease)}
+.mode{display:flex;align-items:center;gap:10px;height:52px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);text-decoration:none;font-weight:500;transition:border-color .15s var(--ease),background-color .15s var(--ease),transform .1s var(--ease)}
 .mode .ic{color:var(--ink)}
 .mode:hover{border-color:var(--line-2)}
+.mode:active{transform:scale(.98)}
+.mode-apprendre{background:var(--ink-soft);border-color:transparent}
+.mode-apprendre:hover{border-color:var(--ink)}
 .preview{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:40px;align-items:start}
 .pv-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:20px}
 .pv-count{font-variant-numeric:tabular-nums;color:var(--text-2);min-width:64px;text-align:center;font-size:14px}
@@ -210,7 +215,7 @@ button.new-tile{background:transparent;width:100%;font:inherit;font-weight:500}
 .btn-again:hover{border-color:var(--bad);color:var(--bad);background:var(--bad-soft)}
 .btn-know:hover{border-color:var(--ok);color:var(--ok);background:var(--ok-soft)}
 .s-tools{display:flex;justify-content:center;gap:4px;flex-wrap:wrap;margin-top:16px}
-.s-tools .btn{height:32px;font-size:13px}
+.s-tools .btn{height:36px;font-size:13px}
 .s-tools .btn[aria-pressed="true"]{color:var(--ink);background:var(--ink-soft)}
 
 .qcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:32px}
@@ -260,7 +265,7 @@ button.new-tile{background:transparent;width:100%;font:inherit;font-weight:500}
 .check{display:flex;align-items:center;gap:10px;cursor:pointer}
 .check input{width:16px;height:16px;accent-color:var(--ink);margin:0}
 .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:8px;padding:2px;gap:2px}
-.seg button{border:0;background:transparent;height:30px;padding:0 12px;border-radius:6px;font-size:13px;color:var(--text-2)}
+.seg button{border:0;background:transparent;height:34px;padding:0 12px;border-radius:6px;font-size:13px;color:var(--text-2)}
 .seg button[aria-pressed="true"]{background:var(--surface-2);color:var(--text);font-weight:500}
 .tq{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 32px}
 .tq + .tq{margin-top:16px}
@@ -298,7 +303,7 @@ button.new-tile{background:transparent;width:100%;font:inherit;font-weight:500}
 .row textarea{width:100%;min-height:40px;resize:vertical;border:0;border-bottom:1px solid var(--line-2);background:transparent;padding:8px 2px;outline:none;line-height:1.45;transition:border-color .15s var(--ease)}
 .row textarea:focus{border-bottom-color:var(--ink)}
 .row textarea.t{font:500 16px/1.45 var(--card)}
-.row-lab{display:block;font-size:11px;color:var(--text-3);margin-top:4px}
+.row-lab{display:block;font-size:12px;color:var(--text-3);margin-top:4px}
 .add-row{width:100%;height:56px;margin-top:12px;border:1px dashed var(--line-2);border-radius:12px;background:transparent;color:var(--text-2);font-weight:500;display:flex;align-items:center;justify-content:center;gap:8px;transition:background-color .15s var(--ease),color .15s var(--ease)}
 .add-row:hover{background:var(--surface);color:var(--text)}
 .import{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:24px;display:flex;flex-direction:column;gap:16px}
@@ -332,13 +337,22 @@ button.new-tile{background:transparent;width:100%;font:inherit;font-weight:500}
 }
 @media (max-width:640px){
   .top-in{gap:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-  .search{margin-left:4px}
-  .new-label{display:none}
-  .top .btn-primary{width:36px;padding:0}
+  .new-label,.brand-word,.top-sp{display:none}
+  .search{margin-left:0;max-width:none}
+  .top-in{height:68px}
+  .btn,.iconbtn,.search input,.num-in,.s-tools .btn,.seg button{height:44px}
+  .iconbtn{width:44px}
+  .top .btn-primary{width:44px;padding:0}
+  .check{min-height:44px}
+  .check input{width:20px;height:20px}
+  .linkbtn{min-height:44px}
+  .row textarea{min-height:44px}
+  .set-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:100%}
+  .set-actions .btn{flex-direction:column;gap:4px;height:60px;padding:0 4px;font-size:12px;white-space:normal;line-height:1.2}
   main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 64px}
   h1{font-size:26px}
-  .modes{grid-template-columns:repeat(2,1fr)}
-  .mode{height:48px}
+  .modes{grid-template-columns:repeat(2,1fr);gap:8px}
+  .mode-apprendre{grid-column:1/-1;order:-1;justify-content:center}
   .face{padding:64px 24px 24px;background-position:0 48px,0 80px;background-size:100% 1.5px,100% calc(100% - 80px)}
   .face-tag{top:18px;left:20px}.face-hint{top:18px;right:20px}
   .face-text{font-size:26px}.face-text.md{font-size:21px}.face-text.long{font-size:17px}
@@ -368,7 +382,7 @@ button.new-tile{background:transparent;width:100%;font:inherit;font-weight:500}
   <div class="top-in">
     <a class="brand" href="#" aria-label="Recto, bibliothèque">
       <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="1.5" style="fill:var(--paper);stroke:currentColor" stroke-width="1.5"/><path d="M2.5 9h19" style="stroke:var(--margin)" stroke-width="1.5"/><path d="M6 13h12M6 16h8" style="stroke:var(--rule)" stroke-width="1.5"/></svg>
-      Recto
+      <span class="brand-word">Recto</span>
     </a>
     <label class="search"><span class="ic-wrap"></span><input id="q" type="search" placeholder="Rechercher" autocomplete="off" aria-label="Rechercher une liste"></label>
     <div class="top-sp"></div>
@@ -545,10 +559,11 @@ let toastT;
 function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2200)}
 
 /* ---------- Composants ---------- */
+const TOUCH=matchMedia('(hover:none)').matches;
 function bristol(front,back,flipped,labels){
   return `<div class="flip${flipped?' is-flipped':''}" data-a="flip" tabindex="0" role="button" aria-label="Retourner la carte">
     <div class="flip-in">
-      <div class="face front"><span class="face-tag">${labels[0]}</span><span class="face-hint">Cliquer pour retourner</span><div class="face-text ${sizeClass(front)}">${esc(front)}</div></div>
+      <div class="face front"><span class="face-tag">${labels[0]}</span><span class="face-hint">${TOUCH?'Toucher':'Cliquer'} pour retourner</span><div class="face-text ${sizeClass(front)}">${esc(front)}</div></div>
       <div class="face back"><span class="face-tag">${labels[1]}</span><div class="face-text ${sizeClass(back)}">${esc(back)}</div></div>
     </div></div>`;
 }
@@ -655,7 +670,7 @@ function vSet(set){
         <button class="btn btn-quiet" data-a="export">${ic('share')}Exporter</button>
         <button class="btn btn-quiet" data-a="del">${ic('trash')}Supprimer</button>
       </div></div>
-    <nav class="modes" aria-label="Modes d'étude">${MODES.map(([k,l])=>`<a class="mode" href="#${k}-${set.id}">${ic(k,18)}${l}</a>`).join('')}</nav>
+    <nav class="modes" aria-label="Modes d'étude">${MODES.map(([k,l])=>`<a class="mode mode-${k}" href="#${k}-${set.id}">${ic(k,18)}${l}</a>`).join('')}</nav>
     <div class="preview">
       <div>${bristol(c.t,c.d,pv.flip,['Terme','Définition'])}
         <div class="pv-nav"><button class="iconbtn" data-a="pvprev" aria-label="Carte précédente" ${pv.i?'':'disabled'}>${ic('prev',18)}</button>
